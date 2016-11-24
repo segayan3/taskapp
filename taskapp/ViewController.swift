@@ -10,17 +10,21 @@ import UIKit
 import RealmSwift
 import UserNotifications
 
-class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate {
 
     @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var searchBar: UISearchBar!
     
     // Realmインスタンスを作成
     let realm = try! Realm()
     
+    // searchBarでの検索結果を代入するプロパティー
+    //var searchResults: Results<Task>?
+    
     // DB内のデータを取得して格納する配列
     // 日付の近い順でソート:降順
     // 以降、内容をアップデートするとリストが自動更新される
-    let taskArray = try! Realm().objects(Task.self).sorted(byProperty: "date", ascending: false)
+    var taskArray = try! Realm().objects(Task.self).sorted(byProperty: "date", ascending: false)
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,6 +33,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         // UITableViewのデリゲート先をこのコントローラーに設定
         tableView.delegate = self
         tableView.dataSource = self
+        
+        // UISearchBarのデリゲート先をこのコントローラーに設定
+        searchBar.delegate = self
     }
 
     override func didReceiveMemoryWarning() {
@@ -51,8 +58,8 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         let task = taskArray[indexPath.row]
         cell.textLabel?.text = task.title
         
-        print("indexPathの中身\(indexPath)")
-        print("taskArrayの中身\(taskArray[indexPath.row])")
+        // print("indexPathの中身\(indexPath)")
+        // print("taskArrayの中身\(taskArray[indexPath.row])")
         
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm" // 日時のフォーマットを決定
@@ -131,5 +138,17 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         tableView.reloadData()
     }
     
+    // MARK: UISearchBarDelegateプロトコルのメソッド
+    // searchBarへの入力内容が変更された時に呼ばれるメソッド
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if(searchText == "") { // 検索キーワードがない or 削除された時
+            taskArray = realm.objects(Task.self).sorted(byProperty: "date", ascending: false)
+        } else { // 検索キーワードが入力された時
+            taskArray = realm.objects(Task.self).filter("category = '\(searchText)'")
+        }
+        
+        // tableViewをリロード
+        tableView.reloadData()
+    }
 }
 

@@ -12,6 +12,7 @@ import UserNotifications
 
 class InputViewController: UIViewController {
 
+    @IBOutlet weak var categoryField: UITextField!
     @IBOutlet weak var titleTextField: UITextField!
     @IBOutlet weak var contentsTextView: UITextView!
     @IBOutlet weak var datePicker: UIDatePicker!
@@ -29,6 +30,7 @@ class InputViewController: UIViewController {
         self.view.addGestureRecognizer(tapGesture)
         
         // ViewControllerから受け取ったtaskをUIに設定
+        categoryField.text = task.category
         titleTextField.text = task.title
         contentsTextView.text = task.contents
         datePicker.date = task.date as Date
@@ -48,6 +50,7 @@ class InputViewController: UIViewController {
     override func viewWillDisappear(_ animated: Bool) {
         // 画面を閉じる前にUIの内容をDBに保存
         try! realm.write {
+            task.category = categoryField.text!
             task.title = titleTextField.text!
             task.contents = contentsTextView.text
             task.date = datePicker.date as Date
@@ -78,10 +81,7 @@ class InputViewController: UIViewController {
         
         // ローカル通知を登録
         let center = UNUserNotificationCenter.current()
-        //center.add(request, withCompletionHandler: <#T##((Error?) -> Void)?##((Error?) -> Void)?##(Error?) -> Void#>)
-        center.add(request) { (error) in
-            print(error ?? <#default value#>)
-        }
+        center.add(request) { (error) in print(error ?? "") }
         
         // 未通知のローカル通知一覧をログ出力
         center.getPendingNotificationRequests { (requests) in
